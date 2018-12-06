@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 请求读取文件
      */
     private static final int REQUEST_RECORD_AUDIO = 0X01;
-    private static final int FREQUENCY_LINE = 15;
+    private static final int FREQUENCY_LINE = 0;
     private Button btn_select_music;
     private TextView tv_select_music;
     private Button btn_start;
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO);
             }
         }
-        mMediaPlayer = MediaPlayer.create(this, R.raw.houhuiwuqi);
+        mMediaPlayer = new MediaPlayer();
         visualizer = new Visualizer(mMediaPlayer.getAudioSessionId());
         visualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         visualizer.setDataCaptureListener(new Visualizer.OnDataCaptureListener() {
@@ -96,32 +96,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 double volume = 10 * Math.log10(v / (double) waveform.length);
 
                 currentVolume = (int) volume;
-                Log.i("xiaozhu", "v=" + v + "volume=" + volume + "    " + waveform.length);
 
             }
 
             @Override
             public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
+                if (mMediaPlayer == null || !mMediaPlayer.isPlaying()) {
+                    return;
+                }
 
-
+                float[] magnitudes = new float[fft.length / 2];
                 int max = 0;
-                for (int i = 0; i < fft.length; i++) {
-                    if (fft[max] < fft[i]) {
+                for (int i = 0; i < magnitudes.length; i++) {
+                    magnitudes[i] = (float) Math.hypot(fft[2 * i], fft[2 * i + 1]);
+                    if (magnitudes[max] < magnitudes[i]) {
                         max = i;
                     }
-                }
-                if (Math.abs(max - currentFrequency) > FREQUENCY_LINE) {
-                    currentFrequency = max;
-                    lastChangeTime = System.currentTimeMillis();
-                    ll_main.setBackgroundColor(ColorUtils.COLOR_LIST_140[currentFrequency % 140]);
-                } else if (System.currentTimeMillis() - lastChangeTime > 1000) {
-                    currentFrequency++;
-                    lastChangeTime = System.currentTimeMillis();
-                    ll_main.setBackgroundColor(ColorUtils.argb((currentVolume - 30) * 0.02f, Color.red(ColorUtils.COLOR_LIST_140[currentFrequency % 140]), Color.green(ColorUtils.COLOR_LIST_140[currentFrequency % 140]), Color.blue(ColorUtils.COLOR_LIST_140[currentFrequency % 140])));
+
                 }
 
+                currentFrequency = max * samplingRate / fft.length;
+                Log.i("xiaozhu", "currentFrequency=" + currentFrequency);
+                if (currentFrequency<0){
+                    return;
+                }
 
-                tv_select_music.setText("频率： " + max * samplingRate / 1024 + "---- 声音" + currentVolume);
+                ll_main.setBackgroundColor(ColorUtils.argb((currentVolume - 30) * 0.02f, Color.red(ColorUtils.COLOR_LIST_140[currentFrequency % 140]), Color.green(ColorUtils.COLOR_LIST_140[currentFrequency % 140]), Color.blue(ColorUtils.COLOR_LIST_140[currentFrequency % 140])));
 
 
             }
@@ -182,6 +182,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             tv_select_music.setText(uri.getPath());
             try {
+                if (mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.reset();
+                }
                 mMediaPlayer.setDataSource(this, uri);
                 mMediaPlayer.prepare();
 
