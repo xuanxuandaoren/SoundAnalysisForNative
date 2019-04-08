@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int FREQUENCY_LINE = 0;
     private Button btn_select_music;
     private TextView tv_select_music;
+    private TextView tv_currentFrequency;
     private Button btn_start;
     private MediaPlayer mMediaPlayer;
     private Visualizer visualizer;
@@ -117,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 currentFrequency = max * samplingRate / fft.length;
                 Log.i("xiaozhu", "currentFrequency=" + currentFrequency);
+                tv_currentFrequency.setText(getString(R.string.frequency)+":"+currentFrequency);
                 if (currentFrequency<0){
                     return;
                 }
@@ -143,12 +145,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initView() {
         btn_select_music = (Button) findViewById(R.id.btn_select_music);
         tv_select_music = (TextView) findViewById(R.id.tv_select_music);
+        tv_currentFrequency = (TextView) findViewById(R.id.tv_currentFrequency);
         btn_start = (Button) findViewById(R.id.btn_start);
 
         btn_select_music.setOnClickListener(this);
         btn_start.setOnClickListener(this);
         ll_main = (LinearLayout) findViewById(R.id.ll_main);
         ll_main.setOnClickListener(this);
+
     }
 
     @Override

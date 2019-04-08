@@ -2,5 +2,6 @@
     <string name="app_name">SoundAnalysForNative</string>
     <string name="select_music">选择音乐</string>
     <string name="music_path">音乐路径</string>
+    <string name="frequency">音乐频率</string>
     <string name="start">开始</string>
 </resources>
